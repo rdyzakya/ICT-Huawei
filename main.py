@@ -22,9 +22,9 @@ def init_args():
     parser.add_argument("--model_name_or_path", type=str, default="facebook/detr-resnet-50", help="Model name or path")
     
     parser.add_argument("--data_dir", type=str, default="data", help="Path to data directory")
-    parser.add_argument("--train_folder", type=str, default="train", help="Path to train folder")
-    parser.add_argument("--val_folder", type=str, default="val", help="Path to val folder")
-    parser.add_argument("--test_folder", type=str, default="test", help="Path to test folder")
+    parser.add_argument("--train", type=str, default="train", help="Path to train folder")
+    parser.add_argument("--val", type=str, default="val", help="Path to val folder")
+    parser.add_argument("--test", type=str, default="test", help="Path to test folder")
 
     parser.add_argument("--do_train", action="store_true", help="Train the model")
     parser.add_argument("--do_eval", action="store_true", help="Evaluate the model")
@@ -57,11 +57,14 @@ def main():
     dataset = {}
 
     if args.do_predict:
-        dataset["train"] = read_dataset(os.path.join(args.data_dir, args.train_folder), format="yolo")
+        train_base_path = os.path.join(args.data_dir, args.train)
+        dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="yolo")
     if args.do_eval:
-        dataset["val"] = read_dataset(os.path.join(args.data_dir, args.val_folder), format="yolo")
+        eval_base_path = os.path.join(args.data_dir, args.valr)
+        dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="yolo")
     if args.do_predict:
-        dataset["test"] = read_dataset(os.path.join(args.data_dir, args.test_folder), format="yolo")
+        test_base_path = os.path.join(args.data_dir, args.testr)
+        dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="yolo")
     
     dataset = datasets.DatasetDict(dataset)
 
