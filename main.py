@@ -60,7 +60,7 @@ def main():
         train_base_path = os.path.join(args.data_dir, args.train)
         dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="yolo")
     if args.do_eval:
-        eval_base_path = os.path.join(args.data_dir, args.valr)
+        eval_base_path = os.path.join(args.data_dir, args.val)
         dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="yolo")
     if args.do_predict:
         test_base_path = os.path.join(args.data_dir, args.testr)
