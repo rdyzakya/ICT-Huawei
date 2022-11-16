@@ -2,3 +2,7 @@ transformers
 datasets
 Pillow
 torch
+torchvision
+albumentations
+opencv-python
+numpy

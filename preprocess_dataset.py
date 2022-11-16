@@ -4,14 +4,14 @@ import datasets
 import os
 
 
-def init_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--image', type=str, default='data/images', help='path to images')
-    parser.add_argument('--label', type=str, default='data/labels', help='path to labels')
-    parser.add_argument("--format", type=str, default="yolo", help="format of label (coco,label,xml)")
-    args = parser.parse_args()
+# def init_args():
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--image', type=str, default='data/images', help='path to images')
+#     parser.add_argument('--label', type=str, default='data/labels', help='path to labels')
+#     parser.add_argument("--format", type=str, default="yolo", help="format of label (coco,label,xml)")
+#     args = parser.parse_args()
 
-    return args
+#     return args
 
 def count_area(bbox, format = "yolo"):
     if format == "yolo":
@@ -26,6 +26,9 @@ def count_area(bbox, format = "yolo"):
 
 def read_dataset(image_path,label_path,format="yolo"):
     image_files = os.listdir(image_path)
+    class_path = os.path.join(label_path, "_classes.txt")
+    with open(class_path, "r") as f:
+        classes = eval(f.read().splitlines()[0])
 
     # filter image from jpg and png
     image_files = [file for file in image_files if file.endswith('.jpg') or file.endswith('.png')]
@@ -72,4 +75,8 @@ def read_dataset(image_path,label_path,format="yolo"):
         ds["height"].append(height)
         ds["objects"].append(objects)
 
-    return datasets.Dataset.from_dict(ds)
+    ds = datasets.Dataset.from_dict(ds)
+    # change ds.features['objects'] to Sequence
+    ds.features['objects'] = datasets.Sequence(ds.features['objects'])
+    ds.features['objects'].feature['category'] = datasets.ClassLabel(names=classes)
+    return ds
