@@ -2,6 +2,7 @@ from PIL import Image
 import datasets
 import os
 import numpy as np
+import torch
 
 def count_area(bbox, format = "yolo"):
     if format == "yolo":
@@ -59,8 +60,12 @@ def read_dataset(image_path,label_path,format="yolo"):
             "category" : category
         }
 
-        # # convert to numpy array
-        # image = np.array(image)
+        # convert to numpy array and tensor
+        image = np.array(image)
+        # reshape to c,h,w from h,w,c
+        image = np.transpose(image, (2,0,1))
+        # convert to torch.Tensor
+        image = torch.Tensor(image)
 
         ds["image_id"].append(image_index)
         ds["image"].append(image)
