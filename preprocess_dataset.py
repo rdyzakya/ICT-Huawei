@@ -80,3 +80,23 @@ def read_dataset(image_path,label_path,format="yolo"):
     ds.features['objects'] = datasets.Sequence(ds.features['objects'])
     ds.features['objects'].feature['category'] = datasets.ClassLabel(names=classes)
     return ds
+
+def coco_format_annotation(ds):
+    result = []
+    for i in range(len(ds)):
+        objects = ds[i]["objects"]
+        annotations = {
+            "image_id" : ds[i]["image_id"],
+            "annotations" : []
+        }
+        for j in range(len(objects["id"])):
+            annotations["annotations"].append({
+                "image_id": ds[i]["image_id"],
+                "category_id": objects["category"][j],
+                "bbox": objects["bbox"][j],
+                "area": objects["area"][j],
+                "id": objects["id"][j]
+            })
+        result.append(annotations)
+    
+    return result

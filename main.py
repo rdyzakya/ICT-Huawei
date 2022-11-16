@@ -13,7 +13,7 @@ from PIL import Image
 import os
 import json
 
-from preprocess_dataset import read_dataset
+from preprocess_dataset import read_dataset, coco_format_annotation
 
 # https://huggingface.co/docs/datasets/object_detection
 
@@ -56,18 +56,23 @@ def main():
     # Prepare dataset
     print("Preparing dataset...")
     dataset = {}
+    annotations = {}
 
     if args.do_predict:
         train_base_path = os.path.join(args.data_dir, args.train)
-        dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="yolo")
+        dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="coco")
+        annotations["train"] = dataset["train"].map(coco_format_annotation, batched=True, remove_columns=dataset["train"].column_names)
     if args.do_eval:
         eval_base_path = os.path.join(args.data_dir, args.val)
-        dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="yolo")
+        dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="coco")
+        annotations["val"] = dataset["val"].map(coco_format_annotation, batched=True, remove_columns=dataset["val"].column_names)
     if args.do_predict:
         test_base_path = os.path.join(args.data_dir, args.test)
-        dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="yolo")
+        dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="coco")
+        annotations["test"] = dataset["test"].map(coco_format_annotation, batched=True, remove_columns=dataset["test"].column_names)
     
     dataset = datasets.DatasetDict(dataset)
+    annotations = datasets.DatasetDict(annotations)
 
     print("Loading model...")
 
