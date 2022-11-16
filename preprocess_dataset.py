@@ -41,7 +41,7 @@ def read_dataset(image_path,label_path,format="yolo"):
         "objects" : []
     }
 
-    for image_file in image_files:
+    for image_index,image_file in enumerate(image_files):
         label_file = image_file.replace(".jpg",".txt") if image_file.endswith(".jpg") else image_file.replace(".png",".txt")
         # image
         image = Image.open(os.path.join(image_path, image_file))
@@ -69,7 +69,7 @@ def read_dataset(image_path,label_path,format="yolo"):
             "category" : category
         }
 
-        ds["image_id"].append(image_file)
+        ds["image_id"].append(image_index)
         ds["image"].append(image)
         ds["width"].append(width)
         ds["height"].append(height)
