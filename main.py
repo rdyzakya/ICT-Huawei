@@ -37,16 +37,33 @@ def init_args():
 
     return args
 
-def train(args,model,feature_extractor,dataset,train_args):
+def train(args,model,feature_extractor,dataset,annotations,train_args):
+    # For native pt : https://huggingface.co/docs/transformers/training#train-in-native-pytorch
+
+    # Feature extract the dataset
+    inputs_train = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+    # Prepare the training arguments
+
+    # For reference : https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments
     training_arguments = transformers.TrainingArguments(**train_args)
-    # trainer = transformers.Trainer(
-    #     model=model,
-    #     args=training_arguments,
-    #     train_dataset=dataset["train"],
-    #     eval_dataset=dataset["val"],
-    #     tokenizer=feature_extractor,
-    #     compute_metrics=datasets.load_metric("coco")
-    # )
+    trainer_args = {
+        "model": model,
+        "args": training_arguments,
+        "train_dataset": inputs_train,
+        "tokenizer": feature_extractor,
+        "do_train": args.do_train,
+        "do_eval": args.do_eval,
+        "do_predict": args.do_predict,
+    }
+    # If evaluation then...
+    if args.do_eval:
+        inputs_val = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
+        trainer_args["eval_dataset"] = inputs_val
+    # Prepare the trainer
+    trainer = transformers.Trainer(**trainer_args)
+    # Train the model
+    print("Start the training...")
+    trainer.train()
 
 def main():
     args = init_args()
@@ -91,8 +108,10 @@ def main():
     
     # https://www.immersivelimit.com/tutorials/create-coco-annotations-from-scratch
 
+    # https://towardsdatascience.com/on-object-detection-metrics-with-worked-example-216f173ed31e
+
     if args.do_train:
-        pass
+        train(args,model,feature_extractor,dataset,annotations,train_args)
     if args.do_predict:
         pass
 
