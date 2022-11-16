@@ -41,10 +41,6 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     # For native pt : https://huggingface.co/docs/transformers/training#train-in-native-pytorch
 
     # Feature extract the dataset
-    print("List of image type", type(dataset["train"]["image"]))
-    print("Image dtype", type(dataset["train"]["image"][0]))
-    print("List of annotation type", type(annotations["train"]))
-    print("Annotation dtype", type(annotations["train"][0]))
     tensors = [pil_to_tensor(image) for image in dataset["train"]["image"]]
     inputs_train = feature_extractor(images=tensors, annotations=annotations["train"], return_tensors="pt")
     # Prepare the training arguments

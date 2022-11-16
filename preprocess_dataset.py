@@ -31,6 +31,9 @@ def read_dataset(image_path,label_path,format="yolo"):
         "objects" : []
     }
 
+    # sort image_files
+    image_files.sort()
+
     for image_index,image_file in enumerate(image_files):
         label_file = image_file.replace(".jpg",".txt") if image_file.endswith(".jpg") else image_file.replace(".png",".txt")
         # image
