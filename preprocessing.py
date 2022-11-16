@@ -80,5 +80,5 @@ for fil in files:
             f.write("\n".join(result))
 
 # generate the classes file as reference
-with open('classes.txt', 'w', encoding='utf8') as f:
+with open(os.path.join(args.output,'_classes.txt'), 'w', encoding='utf8') as f:
     f.write(json.dumps(classes))
