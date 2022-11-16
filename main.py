@@ -78,16 +78,19 @@ def main():
     if args.do_predict:
         train_base_path = os.path.join(args.data_dir, args.train)
         dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="coco")
-        annotations["train"] = dataset["train"].map(coco_format_annotation, batched=True, remove_columns=dataset["train"].column_names)
+        # annotations["train"] = dataset["train"].map(coco_format_annotation, batched=True, remove_columns=dataset["train"].column_names)
+        annotations["train"] = coco_format_annotation(dataset["train"])
     if args.do_eval:
         eval_base_path = os.path.join(args.data_dir, args.val)
         dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="coco")
-        annotations["val"] = dataset["val"].map(coco_format_annotation, batched=True, remove_columns=dataset["val"].column_names)
+        # annotations["val"] = dataset["val"].map(coco_format_annotation, batched=True, remove_columns=dataset["val"].column_names)
+        annotations["val"] = coco_format_annotation(dataset["val"])
     if args.do_predict:
         test_base_path = os.path.join(args.data_dir, args.test)
         dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="coco")
-        annotations["test"] = dataset["test"].map(coco_format_annotation, batched=True, remove_columns=dataset["test"].column_names)
-    
+        # annotations["test"] = dataset["test"].map(coco_format_annotation, batched=True, remove_columns=dataset["test"].column_names)
+        annotations["test"] = coco_format_annotation(dataset["test"])
+        
     dataset = datasets.DatasetDict(dataset)
     annotations = datasets.DatasetDict(annotations)
 
