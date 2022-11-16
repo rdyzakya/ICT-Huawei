@@ -41,6 +41,10 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     # For native pt : https://huggingface.co/docs/transformers/training#train-in-native-pytorch
 
     # Feature extract the dataset
+    print("List of image type", type(dataset["train"]["image"]))
+    print("Image dtype", type(dataset["train"]["image"][0]))
+    print("List of annotation type", type(dataset["train"]["annotations"]))
+    print("Annotation dtype", type(annotations["train"][0]))
     inputs_train = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
     # Prepare the training arguments
 
@@ -90,7 +94,7 @@ def main():
         dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="coco")
         # annotations["test"] = dataset["test"].map(coco_format_annotation, batched=True, remove_columns=dataset["test"].column_names)
         annotations["test"] = coco_format_annotation(dataset["test"])
-        
+
     dataset = datasets.DatasetDict(dataset)
     annotations = datasets.DatasetDict(annotations)
 
