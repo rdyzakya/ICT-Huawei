@@ -1,17 +1,7 @@
-import argparse
 from PIL import Image
 import datasets
 import os
-
-
-# def init_args():
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--image', type=str, default='data/images', help='path to images')
-#     parser.add_argument('--label', type=str, default='data/labels', help='path to labels')
-#     parser.add_argument("--format", type=str, default="yolo", help="format of label (coco,label,xml)")
-#     args = parser.parse_args()
-
-#     return args
+import numpy as np
 
 def count_area(bbox, format = "yolo"):
     if format == "yolo":
@@ -44,11 +34,8 @@ def read_dataset(image_path,label_path,format="yolo"):
     for image_index,image_file in enumerate(image_files):
         label_file = image_file.replace(".jpg",".txt") if image_file.endswith(".jpg") else image_file.replace(".png",".txt")
         # image
-        # if it is png, convert to jpg via pillow
         image = Image.open(os.path.join(image_path,image_file))
-        if image_file.endswith(".png"):
-            image = image.convert("RGB")
-            # image_file = image_file.replace(".png",".jpg")
+        image = np.array(image)
         with open(os.path.join(label_path, label_file)) as f:
             label = f.read().splitlines()
         label = [el.split() for el in label]
