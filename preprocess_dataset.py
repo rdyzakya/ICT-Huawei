@@ -61,14 +61,16 @@ def read_dataset(image_path,label_path,format="yolo"):
         }
 
         # convert to numpy array and tensor
-        image = np.array(image)
+        image_tensor = np.array(image)
         # reshape to c,h,w from h,w,c
-        image = np.transpose(image, (2,0,1))
+        image_tensor = np.transpose(image, (2,0,1))
         # convert to torch.Tensor
-        image = torch.Tensor(image)
+        image_tensor = torch.Tensor(image)
 
+        ds["file_name"].append(image_file)
         ds["image_id"].append(image_index)
         ds["image"].append(image)
+        ds["image_tensor"].append(image_tensor)
         ds["width"].append(width)
         ds["height"].append(height)
         ds["objects"].append(objects)
