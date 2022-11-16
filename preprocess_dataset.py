@@ -25,8 +25,10 @@ def read_dataset(image_path,label_path,format="yolo"):
     image_files = [file for file in image_files if file.endswith('.jpg') or file.endswith('.png')]
 
     ds = {
+        "file_name" : [],
         "image_id": [],
         "image" : [],
+        "image_tensor" : [],
         "width" : [],
         "height" : [],
         "objects" : []
