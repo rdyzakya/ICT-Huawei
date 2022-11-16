@@ -74,6 +74,18 @@ def main():
     model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path)
     feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path)
 
+    # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
+    # annotations (Dict, List[Dict], optional) — The corresponding annotations in COCO format.
+    # In case DetrFeatureExtractor was initialized with format = "coco_detection", 
+    # the annotations for each image should have the following format: {‘image_id’: int, ‘annotations’: [annotation]},
+    #  with the annotations being a list of COCO object annotations.
+
+    # In case DetrFeatureExtractor was initialized with format = "coco_panoptic", the annotations 
+    # for each image should have the following format: {‘image_id’: int, ‘file_name’: str, ‘segments_info’: 
+    # [segment_info]} with segments_info being a list of COCO panoptic annotations.
+    
+    # https://www.immersivelimit.com/tutorials/create-coco-annotations-from-scratch
+
     if args.do_train:
         pass
     if args.do_predict:
