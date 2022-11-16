@@ -54,6 +54,7 @@ def main():
     train_args = json.load(open(args.train_args, "r"))
 
     # Prepare dataset
+    print("Preparing dataset...")
     dataset = {}
 
     if args.do_predict:
@@ -63,10 +64,12 @@ def main():
         eval_base_path = os.path.join(args.data_dir, args.val)
         dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="yolo")
     if args.do_predict:
-        test_base_path = os.path.join(args.data_dir, args.testr)
+        test_base_path = os.path.join(args.data_dir, args.test)
         dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="yolo")
     
     dataset = datasets.DatasetDict(dataset)
+
+    print("Loading model...")
 
     model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path)
     feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path)
