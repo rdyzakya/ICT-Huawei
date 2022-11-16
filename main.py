@@ -2,7 +2,7 @@ import argparse
 import torch
 # from torchvision.ops import box_convert
 # from torchvision.utils import draw_bounding_boxes
-# from torchvision.transforms.functional import pil_to_tensor, to_pil_image
+from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
 import transformers
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection
@@ -45,7 +45,8 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     print("Image dtype", type(dataset["train"]["image"][0]))
     print("List of annotation type", type(annotations["train"]))
     print("Annotation dtype", type(annotations["train"][0]))
-    inputs_train = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+    tensors = pil_to_tensor([dataset["train"]["image"][i]] for i in range(len(dataset["train"]["image"])))
+    inputs_train = feature_extractor(images=tensors, annotations=annotations["train"], return_tensors="pt")
     # Prepare the training arguments
 
     # For reference : https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments

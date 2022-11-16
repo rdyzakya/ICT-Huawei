@@ -1,9 +1,6 @@
 from PIL import Image
 import datasets
 import os
-import numpy as np
-import torch
-from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
 def count_area(bbox, format = "yolo"):
     if format == "yolo":
@@ -29,7 +26,6 @@ def read_dataset(image_path,label_path,format="yolo"):
         "file_name" : [],
         "image_id": [],
         "image" : [],
-        "image_tensor" : [],
         "width" : [],
         "height" : [],
         "objects" : []
@@ -63,13 +59,9 @@ def read_dataset(image_path,label_path,format="yolo"):
             "category" : category
         }
 
-        # convert to tensor
-        image_tensor = pil_to_tensor(image)
-
         ds["file_name"].append(image_file)
         ds["image_id"].append(image_index)
         ds["image"].append(image)
-        ds["image_tensor"].append(image_tensor)
         ds["width"].append(width)
         ds["height"].append(height)
         ds["objects"].append(objects)
