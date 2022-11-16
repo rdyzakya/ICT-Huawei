@@ -3,6 +3,7 @@ import datasets
 import os
 import numpy as np
 import torch
+from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
 def count_area(bbox, format = "yolo"):
     if format == "yolo":
@@ -62,13 +63,8 @@ def read_dataset(image_path,label_path,format="yolo"):
             "category" : category
         }
 
-        # convert to numpy array and tensor
-        image_tensor = np.array(image)
-        # reshape to c,h,w from h,w,c
-        print("KOCAK",image_tensor.shape)
-        image_tensor = np.transpose(image_tensor, (2,0,1))
-        # convert to torch.Tensor
-        image_tensor = torch.Tensor(image_tensor)
+        # convert to tensor
+        image_tensor = pil_to_tensor(image)
 
         ds["file_name"].append(image_file)
         ds["image_id"].append(image_index)

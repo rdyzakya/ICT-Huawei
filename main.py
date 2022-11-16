@@ -1,8 +1,8 @@
 import argparse
 import torch
-from torchvision.ops import box_convert
-from torchvision.utils import draw_bounding_boxes
-from torchvision.transforms.functional import pil_to_tensor, to_pil_image
+# from torchvision.ops import box_convert
+# from torchvision.utils import draw_bounding_boxes
+# from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
 import transformers
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection
