@@ -65,6 +65,7 @@ def read_dataset(image_path,label_path,format="yolo"):
         # convert to numpy array and tensor
         image_tensor = np.array(image)
         # reshape to c,h,w from h,w,c
+        print("KOCAK",image_tensor.shape)
         image_tensor = np.transpose(image_tensor, (2,0,1))
         # convert to torch.Tensor
         image_tensor = torch.Tensor(image_tensor)
