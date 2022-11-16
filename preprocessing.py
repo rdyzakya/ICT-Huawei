@@ -3,6 +3,13 @@ import glob
 import os
 import json
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--input', type=str, default='data/annotations', help='path to input annotations')
+parser.add_argument('--output', type=str, default='data/annotations', help='path to output annotations')
+parser.add_argument('--image', type=str, default='data/images', help='path to images')
+args = parser.parse_args()
 
 # https://towardsdatascience.com/convert-pascal-voc-xml-to-yolo-for-object-detection-f969811ccba5
 
@@ -28,9 +35,9 @@ def yolo_to_xml_bbox(bbox, w, h):
 
 
 classes = []
-input_dir = "dataset_masks/test/Annotations"
-output_dir = "labels_test/"
-image_dir = "dataset_masks/test/Images"
+input_dir = args.input
+output_dir = args.output
+image_dir = args.image
 
 # create the labels folder (output directory)
 if not os.path.exists(output_dir):
