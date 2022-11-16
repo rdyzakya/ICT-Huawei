@@ -51,7 +51,7 @@ def read_dataset(image_path,label_path,format="yolo"):
         bbox = [] # list of bbox
 
         for l in label:
-            category.append(l[0])
+            category.append(int(l[0]))
             bbox.append([float(el) for el in l[1:]]) # xmin, ymin, xmax, ymax
         area = []
         for b in bbox:
