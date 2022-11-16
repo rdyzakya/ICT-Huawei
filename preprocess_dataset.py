@@ -59,8 +59,8 @@ def read_dataset(image_path,label_path,format="yolo"):
             "category" : category
         }
 
-        # convert to numpy array
-        image = np.array(image)
+        # # convert to numpy array
+        # image = np.array(image)
 
         ds["image_id"].append(image_index)
         ds["image"].append(image)
