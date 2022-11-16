@@ -11,6 +11,7 @@ def init_args():
     parser.add_argument('--output', type=str, default='data/annotations', help='path to output annotations')
     parser.add_argument('--image', type=str, default='data/images', help='path to images')
     parser.add_argument('--format', type=str, default='yolo', help='format to convert to (coco,yolo,xml)')
+    parser.add_argument('--normalize', action='store_true', help='normalize bounding boxes')
     args = parser.parse_args()
 
     return args
@@ -19,31 +20,31 @@ def init_args():
 # https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/#coco
 
 
-def xml_to_yolo_bbox(bbox, w, h):
+def xml_to_yolo_bbox(bbox, w, h, normalize=True):
     # xmin, ymin, xmax, ymax
-    x_center = ((bbox[2] + bbox[0]) / 2) / w
-    y_center = ((bbox[3] + bbox[1]) / 2) / h
-    width = (bbox[2] - bbox[0]) / w
-    height = (bbox[3] - bbox[1]) / h
+    x_center = ((bbox[2] + bbox[0]) / 2) / w if normalize else ((bbox[2] + bbox[0]) / 2)
+    y_center = ((bbox[3] + bbox[1]) / 2) / h if normalize else ((bbox[3] + bbox[1]) / 2)
+    width = (bbox[2] - bbox[0]) / w if normalize else (bbox[2] - bbox[0])
+    height = (bbox[3] - bbox[1]) / h if normalize else (bbox[3] - bbox[1])
     return [x_center, y_center, width, height]
 
 
-def yolo_to_xml_bbox(bbox, w, h):
-    # x_center, y_center width heigth
-    w_half_len = (bbox[2] * w) / 2
-    h_half_len = (bbox[3] * h) / 2
-    xmin = int((bbox[0] * w) - w_half_len)
-    ymin = int((bbox[1] * h) - h_half_len)
-    xmax = int((bbox[0] * w) + w_half_len)
-    ymax = int((bbox[1] * h) + h_half_len)
+def yolo_to_xml_bbox(bbox, w, h, normalize=True):
+    # x_center, y_center, width, height
+    w_half_len = (bbox[2] * w) / 2 if normalize else (bbox[2] / 2)
+    h_half_len = (bbox[3] * h) / 2 if normalize else (bbox[3] / 2)
+    xmin = int((bbox[0] * w) - w_half_len) if normalize else int(bbox[0] - w_half_len)
+    ymin = int((bbox[1] * h) - h_half_len) if normalize else int(bbox[1] - h_half_len)
+    xmax = int((bbox[0] * w) + w_half_len) if normalize else int(bbox[0] + w_half_len)
+    ymax = int((bbox[1] * h) + h_half_len) if normalize else int(bbox[1] + h_half_len)
     return [xmin, ymin, xmax, ymax]
 
-def xml_to_coco_bbox(bbox, w, h):
+def xml_to_coco_bbox(bbox, w, h, normalize=True):
     # xmin, ymin, xmax, ymax
-    x_min = bbox[0]
-    y_min = bbox[1]
-    width = (bbox[2] - bbox[0]) / w
-    height = (bbox[3] - bbox[1]) / h
+    x_min = bbox[0] / w if normalize else bbox[0]
+    y_min = bbox[1] / h if normalize else bbox[1]
+    width = (bbox[2] - bbox[0]) / w if normalize else (bbox[2] - bbox[0])
+    height = (bbox[3] - bbox[1]) / h if normalize else (bbox[3] - bbox[1])
     return [x_min, y_min, width, height]
 
 def main():
@@ -87,9 +88,9 @@ def main():
             # bbox = xml_to_yolo_bbox(pil_bbox, width, height) if args.format == 'yolo' else xml_to_coco_bbox(pil_bbox, width, height)
             bbox = None
             if args.format == 'yolo':
-                bbox = xml_to_yolo_bbox(pil_bbox, width, height)
+                bbox = xml_to_yolo_bbox(pil_bbox, width, height, args.normalize)
             elif args.format == 'coco':
-                bbox = xml_to_coco_bbox(pil_bbox, width, height)
+                bbox = xml_to_coco_bbox(pil_bbox, width, height, args.normalize)
             elif args.format == 'xml':
                 bbox = pil_bbox
             else:
