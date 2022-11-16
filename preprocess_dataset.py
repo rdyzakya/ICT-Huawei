@@ -35,7 +35,6 @@ def read_dataset(image_path,label_path,format="yolo"):
         label_file = image_file.replace(".jpg",".txt") if image_file.endswith(".jpg") else image_file.replace(".png",".txt")
         # image
         image = Image.open(os.path.join(image_path,image_file))
-        image = np.array(image)
         with open(os.path.join(label_path, label_file)) as f:
             label = f.read().splitlines()
         label = [el.split() for el in label]
@@ -59,6 +58,9 @@ def read_dataset(image_path,label_path,format="yolo"):
             "bbox" : bbox,
             "category" : category
         }
+
+        # convert to numpy array
+        image = np.array(image)
 
         ds["image_id"].append(image_index)
         ds["image"].append(image)
