@@ -43,7 +43,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     # Feature extract the dataset
     print("List of image type", type(dataset["train"]["image"]))
     print("Image dtype", type(dataset["train"]["image"][0]))
-    print("List of annotation type", type(dataset["train"]["annotations"]))
+    print("List of annotation type", type(annotations["train"]))
     print("Annotation dtype", type(annotations["train"][0]))
     inputs_train = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
     # Prepare the training arguments
