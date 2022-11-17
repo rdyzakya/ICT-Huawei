@@ -169,6 +169,62 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
 
     return history
 
+def predict(args, model, feature_extractor, dataset, annotations, test_batch_size):
+    inputs_test = feature_extractor(images=dataset["test"]["image"], annotations=annotations["test"], return_tensors="pt")
+    device = torch.device(f"cuda:{args.n_gpu}" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    model.eval()
+    results = []
+    test_loss_value = 0
+    for i in range(0,len(inputs_test["pixel_values"]),test_batch_size):
+        pixel_values = inputs_test["pixel_values"][i:i+test_batch_size].to(device)
+        labels = inputs_test["labels"][i:i+test_batch_size]
+        for j in range(len(labels)):
+            label = labels[j]
+            for k in label.keys():
+                # to device
+                labels[j][k] = label[k].to(device)
+        batch = {"pixel_values" : pixel_values, "labels" : labels}
+
+        with torch.no_grad():
+            outputs = model(**batch)
+        
+        loss = outputs.loss
+        test_loss_value += loss.item()
+
+        target_sizes = torch.tensor([
+            image.size[::-1] for image in dataset["test"]["image"][i:i+test_batch_size]
+        ])
+
+        for k in outputs.keys():
+            if isinstance(outputs[k], torch.Tensor):
+                outputs[k] = outputs[k].to('cpu')
+        
+        r = feature_extractor.post_process_object_detection(
+            outputs, threshold=args.threshold, target_sizes=target_sizes
+        )
+
+        results.extend(r)
+    
+    current_test_loss = test_loss_value/len(inputs_test["pixel_values"])
+    print("Average test loss : ", current_test_loss)
+
+    ground_truths = dataset["test"]["objects"]
+
+    evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
+    print("Evaluation score : ", evaluation_score)
+
+    # write to metrics_and_loss.json and results.json
+    metrics_and_loss = {"test_loss" : current_test_loss, "test_map" : evaluation_score}
+    with open(os.path.join(args.output_dir, "metrics_and_loss.json"), "w") as f:
+        json.dump(metrics_and_loss, f)
+    
+    with open(os.path.join(args.output_dir, "results.json"), "w") as f:
+        json.dump(results, f)
+    
+    return results, metrics_and_loss
+
 def main():
     args = init_args()
     # Get training args
@@ -183,17 +239,14 @@ def main():
     if args.do_predict:
         train_base_path = os.path.join(args.data_dir, args.train)
         dataset["train"] = read_dataset(os.path.join(train_base_path,"Images"), os.path.join(train_base_path,"Labels"), format="coco")
-        # annotations["train"] = dataset["train"].map(coco_format_annotation, batched=True, remove_columns=dataset["train"].column_names)
         annotations["train"] = coco_format_annotation(dataset["train"])
     if args.do_eval:
         eval_base_path = os.path.join(args.data_dir, args.val)
         dataset["val"] = read_dataset(os.path.join(eval_base_path,"Images"), os.path.join(eval_base_path,"Labels"), format="coco")
-        # annotations["val"] = dataset["val"].map(coco_format_annotation, batched=True, remove_columns=dataset["val"].column_names)
         annotations["val"] = coco_format_annotation(dataset["val"])
     if args.do_predict:
         test_base_path = os.path.join(args.data_dir, args.test)
         dataset["test"] = read_dataset(os.path.join(test_base_path,"Images"), os.path.join(test_base_path,"Labels"), format="coco")
-        # annotations["test"] = dataset["test"].map(coco_format_annotation, batched=True, remove_columns=dataset["test"].column_names)
         annotations["test"] = coco_format_annotation(dataset["test"])
 
     dataset = datasets.DatasetDict(dataset)
@@ -222,7 +275,7 @@ def main():
     if args.do_train:
         history = train(args,model,feature_extractor,dataset,annotations,train_args)
     if args.do_predict:
-        pass
+        results, metrics_and_loss = predict(args,model,feature_extractor,dataset,annotations,train_args)
 
 if __name__ == "__main__":
     main()
