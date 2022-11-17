@@ -172,7 +172,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     return history
 
 def predict(args, model, feature_extractor, dataset, annotations):
-    test_batch_size = args.per_device_eval_batch_size
+    test_batch_size = args.per_device_predict_batch_size
     inputs_test = feature_extractor(images=dataset["test"]["image"], annotations=annotations["test"], return_tensors="pt")
     device = torch.device(f"cuda:{args.n_gpu}" if torch.cuda.is_available() else "cpu")
     model.to(device)
