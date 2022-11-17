@@ -64,9 +64,13 @@ def collate_fn(batch,feature_extractor):
     encoding = feature_extractor.pad_and_create_pixel_mask(
         pixel_values, return_tensors="pt"
     )
-    labels = [item["labels"] for item in batch]
-    print("kocak")
-    print(labels)
+    # labels = [item["labels"] for item in batch]
+    labels = []
+    for item in batch:
+        for k in item.keys():
+            if isinstance(item[k], list):
+                item[k] = torch.tensor(item[k])
+        labels.append(item)
     batch = {}
     batch["pixel_values"] = pixel_values
     batch["pixel_mask"] = encoding["pixel_mask"]
