@@ -15,7 +15,7 @@ from transformers import get_scheduler
 import eval_utils
 
 import datasets
-from preprocess_dataset import read_dataset, coco_format_annotation
+from preprocess_dataset import read_dataset, coco_format_annotation, map_coco_annotation
 
 import os
 import json
@@ -72,12 +72,13 @@ def collate_fn(batch,feature_extractor):
 
 def transform(example_batch,feature_extractor):
     images = example_batch["image"]
-    ids_ = example_batch["image_id"]
-    objects = example_batch["objects"]
-    targets = [
-        {"image_id": id_, "annotations": object_} for id_, object_ in zip(ids_, objects)
-    ]
-    return feature_extractor(images=images, annotations=targets, return_tensors="pt")
+    # ids_ = example_batch["image_id"]
+    # objects = example_batch["objects"]
+    # targets = [
+    #     {"image_id": id_, "annotations": object_} for id_, object_ in zip(ids_, objects)
+    # ]
+    annotations = example_batch["annotations"]
+    return feature_extractor(images=images, annotations=annotations, return_tensors="pt")
 
 def load_model(model_type,model_name_or_path,config,model_args={},feature_extractor_args={}):
     model_args.update(config)
@@ -128,10 +129,17 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
 
     # Feature extract the dataset
     # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
-    inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+    remove_columns = dataset["train"].column_names
+    remove_columns.remove("image")
+    remove_columns.remove("image_id")
+    # inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+    inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+    inputs["train"] = inputs["train"].with_transform(transform)
 
     if args.do_eval:
-        inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
+        # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
+        inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+        inputs["val"] = inputs["val"].with_transform(transform)
     
     training_args = transformers.TrainingArguments(
         output_dir=args.output_dir,
