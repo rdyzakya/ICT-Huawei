@@ -147,20 +147,20 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
 
     # Feature extract the dataset
     # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
-    remove_columns = dataset["train"].column_names
-    remove_columns.remove("image")
-    remove_columns.remove("image_id")
+    # remove_columns = dataset["train"].column_names
+    # remove_columns.remove("image")
+    # remove_columns.remove("image_id")
     # inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
-    inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
-    inputs["train"] = inputs["train"].with_transform(lambda x : transform(x,feature_extractor))
+    # inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+    inputs["train"] = dataset["train"].with_transform(lambda x : transform(x,feature_extractor))
 
     print("KOCAK")
     print(inputs["train"][0])
 
     if args.do_eval:
         # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
-        inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
-        inputs["val"] = inputs["val"].with_transform(lambda x : transform(x,feature_extractor))
+        # inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+        inputs["val"] = dataset["val"].with_transform(lambda x : transform(x,feature_extractor))
     
     training_args = transformers.TrainingArguments(
         output_dir=args.output_dir,
