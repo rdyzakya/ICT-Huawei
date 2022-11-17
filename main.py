@@ -146,8 +146,8 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
         model=model,
         args=training_args,
         data_collator=lambda x : collate_fn(x,feature_extractor),
-        train_dataset=dataset["train"],
-        eval_dataset=dataset["val"],
+        train_dataset=inputs["train"],
+        eval_dataset=inputs["val"],
         tokenizer=feature_extractor,
     )
 
