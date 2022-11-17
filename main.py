@@ -28,7 +28,7 @@ from tqdm import tqdm
 
 def init_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_type", default="detr", type=str, help="Model type selected in the list: " + ", ".join(transformers.MODEL_FOR_OBJECT_DETECTION_MAPPING.keys()))
+    parser.add_argument("--model_type", default="detr", type=str, help="Model type for object detection")
     parser.add_argument("--model_name_or_path", type=str, default="facebook/detr-resnet-50", help="Model name or path")
     parser.add_argument("--output_dir", type=str, default="./output", help="Output directory")
 
