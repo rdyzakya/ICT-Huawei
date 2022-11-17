@@ -6,5 +6,6 @@
     "id2label" : {
         "0" : "no_mask",
         "1" : "yes_mask"
-    }
+    },
+    "ignore_missing_sizes" : true
 }
