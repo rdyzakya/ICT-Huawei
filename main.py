@@ -5,7 +5,7 @@ import math
 import torch
 from torch.optim import AdamW
 import transformers
-from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig
+from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig, AutoProcessor
 from transformers import get_scheduler
 import eval_utils
 
