@@ -13,5 +13,7 @@
     "eval_accumulation_steps" : 10,
     "adam_beta1" : 0.9,
     "adam_beta2" : 0.999,
-    "warmup_steps" : 0
+    "warmup_steps" : 0,
+    "fp16" : false,
+    "save_total_limit" : 2
 }

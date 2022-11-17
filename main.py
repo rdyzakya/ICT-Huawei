@@ -15,6 +15,8 @@ from preprocess_dataset import read_dataset, coco_format_annotation
 import os
 import json
 
+# https://danielvanstrien.xyz/huggingface/huggingface-datasets/transformers/2022/08/16/detr-object-detection.html
+
 from tqdm import tqdm
 
 # https://huggingface.co/docs/datasets/object_detection
@@ -38,6 +40,7 @@ def init_args():
 
     parser.add_argument("--per_device_predict_batch_size", type=int, default=8, help="Batch size for prediction")
 
+    parser.add_argument("--native", action="store_true", help="Train the model using native pytorch")
     parser.add_argument("--iou_threshold", type=float, default=0.5, help="IoU threshold for evaluation")
     parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
     parser.add_argument("--train_args", type=str, default="train_args.json", help="Path to train args file")
@@ -49,7 +52,64 @@ def init_args():
 
     return args
 
-def train(args,model,feature_extractor,dataset,annotations,train_args):
+def collate_fn(batch,feature_extractor):
+    pixel_values = [item["pixel_values"] for item in batch]
+    encoding = feature_extractor.pad_and_create_pixel_mask(
+        pixel_values, return_tensors="pt"
+    )
+    labels = [item["labels"] for item in batch]
+    batch = {}
+    batch["pixel_mask"] = encoding["pixel_mask"]
+    batch["labels"] = labels
+    return batch
+
+def transform(example_batch,feature_extractor):
+    images = example_batch["image"]
+    ids_ = example_batch["image_id"]
+    objects = example_batch["objects"]
+    targets = [
+        {"image_id": id_, "annotations": object_} for id_, object_ in zip(ids_, objects)
+    ]
+    return feature_extractor(images=images, annotations=targets, return_tensors="pt")
+
+def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
+    torch.cuda.empty_cache()
+
+    inputs = {}
+
+    # inputs["train"] = dataset["train"].with_transform(transform)
+    # dataloaders = {}
+
+    # Feature extract the dataset
+    # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
+    inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+
+    if args.do_eval:
+        inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
+    
+    training_args = transformers.TrainingArguments(
+        output_dir=args.output_dir,
+        do_train=args.do_train,
+        do_eval=args.do_eval,
+        do_predict=args.do_predict,
+        seed=args.random_seed,
+        **train_args
+    )
+
+    trainer = transformers.Trainer(
+        model=model,
+        args=training_args,
+        data_collator=lambda x : collate_fn(x,feature_extractor),
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["val"],
+        tokenizer=feature_extractor,
+    )
+
+    trainer.train()
+
+    model.save_pretrained(args.output_dir)
+
+def train_native(args,model,feature_extractor,dataset,annotations,train_args):
     torch.cuda.empty_cache()
     # For native pt : https://huggingface.co/docs/transformers/training#train-in-native-pytorch
     inputs = {}
@@ -282,7 +342,8 @@ def main():
     # https://towardsdatascience.com/on-object-detection-metrics-with-worked-example-216f173ed31e
 
     if args.do_train:
-        history = train(args,model,feature_extractor,dataset,annotations,train_args)
+        training_function = train_native if args.native else train_hf
+        history = training_function(args,model,feature_extractor,dataset,annotations,train_args)
     if args.do_predict:
         results, metrics_and_loss = predict(args,model,feature_extractor,dataset,annotations)
 
