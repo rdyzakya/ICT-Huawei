@@ -129,7 +129,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                     image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
                 ])
                 results = feature_extractor.post_process_object_detection(
-                    outputs, threshold=args.threshold, target_sizes=target_sizes
+                    outputs.to('cpu'), threshold=args.threshold, target_sizes=target_sizes
                 )
                 ground_truths = dataset["val"]["objects"][i:i+train_batch_size]
 
