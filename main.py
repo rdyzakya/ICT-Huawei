@@ -222,7 +222,12 @@ def predict(args, model, feature_extractor, dataset, annotations):
     metrics_and_loss = {"test_loss" : current_test_loss, "test_map" : evaluation_score}
     with open(os.path.join(args.output_dir, "metrics_and_loss.json"), "w") as f:
         json.dump(metrics_and_loss, f)
-    
+
+    for i in range(len(results)):
+        for k in results[i].keys():
+            if isinstance(results[i][k], torch.Tensor):
+                results[i][k] = results[i][k].tolist()
+
     with open(os.path.join(args.output_dir, "results.json"), "w") as f:
         json.dump(results, f)
     
