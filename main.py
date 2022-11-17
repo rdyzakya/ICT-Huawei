@@ -89,11 +89,10 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             pixel_values = inputs["train"]["pixel_values"][i:i+train_batch_size].to(device)
             labels = inputs["train"]["labels"][i:i+train_batch_size]
             for j in range(len(labels)):
-                print("KEKOCAKAN :",i+j)
-                label = labels[i+j]
+                label = labels[j]
                 for k in label.keys():
                     # to device
-                    labels[i+j][k] = label[k].to(device)
+                    labels[j][k] = label[k].to(device)
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
