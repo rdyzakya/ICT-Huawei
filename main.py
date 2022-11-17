@@ -47,7 +47,6 @@ def init_args():
     parser.add_argument("--per_device_predict_batch_size", type=int, default=8, help="Batch size for prediction")
 
     parser.add_argument("--native", action="store_true", help="Train the model using native pytorch")
-    parser.add_argument("--iou_threshold", type=float, default=0.5, help="IoU threshold for evaluation")
     parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
     parser.add_argument("--model_args", type=str, default="model_args.json", help="Path to model args file")
     parser.add_argument("--feature_extractor_args", type=str, default="feature_extractor_args.json", help="Path to feature extractor args file")
@@ -258,7 +257,7 @@ def train_native(args,model,feature_extractor,dataset,annotations,train_args):
 
             ground_truths = dataset["val"]["objects"]
 
-            evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
+            evaluation_score = eval_utils.map_score(ground_truths, results, args.threshold)
             print("Evaluation score : ", evaluation_score)
             history["val_map"].append(evaluation_score)
 
@@ -322,7 +321,7 @@ def predict(args, model, feature_extractor, dataset, annotations):
 
     ground_truths = dataset["test"]["objects"]
 
-    evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
+    evaluation_score = eval_utils.map_score(ground_truths, results, args.threshold)
     print("Evaluation score : ", evaluation_score)
 
     # write to metrics_and_loss.json and results.json
