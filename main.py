@@ -128,8 +128,12 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 target_sizes = torch.tensor([
                     image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
                 ])
+
+                for k in outputs.keys():
+                    outputs[k] = outputs[k].cpu()
+
                 results = feature_extractor.post_process_object_detection(
-                    outputs.to('cpu'), threshold=args.threshold, target_sizes=target_sizes
+                    outputs, threshold=args.threshold, target_sizes=target_sizes
                 )
                 ground_truths = dataset["val"]["objects"][i:i+train_batch_size]
 
