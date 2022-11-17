@@ -141,7 +141,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 )
 
                 results.extend(r)
-                
+
             ground_truths = dataset["val"]["objects"]
 
             evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
@@ -213,7 +213,7 @@ def main():
 
     model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
     model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=config)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=512)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=256)
 
     # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
     # annotations (Dict, List[Dict], optional) — The corresponding annotations in COCO format.
