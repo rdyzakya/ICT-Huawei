@@ -61,6 +61,8 @@ def init_args():
 
 def collate_fn(batch,feature_extractor):
     pixel_values = [item["pixel_values"] for item in batch]
+    print("kocak")
+    print(type(pixel_values))
     encoding = feature_extractor.pad_and_create_pixel_mask(
         pixel_values, return_tensors="pt"
     )
