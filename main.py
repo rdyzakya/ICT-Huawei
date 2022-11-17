@@ -92,7 +92,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 label = labels[i+j]
                 for k in label.keys():
                     # to device
-                    labels[i+j][k].to(device)
+                    labels[i+j][k] = labels[i+j][k].to(device)
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
