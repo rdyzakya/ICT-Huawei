@@ -324,7 +324,7 @@ def main():
     print("Loading model...")
 
     model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
-    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config,ignore_mismatched_sizes=True)
+    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config,ignore_mismatched_sizes=True,num_labels=2)
     feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=args.size)
 
     # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
