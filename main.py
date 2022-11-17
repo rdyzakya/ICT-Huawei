@@ -24,6 +24,7 @@ def init_args():
     parser.add_argument("--model_name_or_path", type=str, default="facebook/detr-resnet-50", help="Model name or path")
     parser.add_argument("--output_dir", type=str, default="./output", help="Output directory")
 
+    parser.add_argument("--size", type=int, default=512, help="Image size")
     parser.add_argument("--data_dir", type=str, default="data", help="Path to data directory")
     parser.add_argument("--train", type=str, default="train", help="Path to train folder")
     parser.add_argument("--val", type=str, default="val", help="Path to val folder")
@@ -263,8 +264,8 @@ def main():
     print("Loading model...")
 
     model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
-    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=256)
+    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config,ignore_mismatched_sizes=True)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=args.size)
 
     # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
     # annotations (Dict, List[Dict], optional) — The corresponding annotations in COCO format.
