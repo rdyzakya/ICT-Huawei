@@ -100,7 +100,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
-            print("Training loss : ", loss)
+            print("Training loss : ", loss.item())
             loss.backward()
 
             optimizer.step()
@@ -111,9 +111,9 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
         if args.do_eval:
             print("Do evaluation...")
             model.eval()
-            for i in range(0, len(inputs["eval"]["pixel_values"]), train_batch_size):
-                pixel_values = inputs["eval"]["pixel_values"][i:i+train_batch_size].to(device)
-                labels = inputs["eval"]["labels"][i:i+train_batch_size]
+            for i in range(0, len(inputs["val"]["pixel_values"]), train_batch_size):
+                pixel_values = inputs["val"]["pixel_values"][i:i+train_batch_size].to(device)
+                labels = inputs["val"]["labels"][i:i+train_batch_size]
                 for j in range(len(labels)):
                     label = labels[j]
                     for k in label.keys():
@@ -124,7 +124,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 with torch.no_grad():
                     outputs = model(**batch)
                 loss = outputs.loss
-                print("Evaluation loss : ", loss)
+                print("Evaluation loss : ", loss.item())
                 target_sizes = torch.tensor([
                     image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
                 ])
