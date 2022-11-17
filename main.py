@@ -5,7 +5,12 @@ import math
 import torch
 from torch.optim import AdamW
 import transformers
-from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig, AutoProcessor
+from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig
+from transformers import DetrConfig, DetrForObjectDetection, DetrFeatureExtractor
+from transformers import ConditionalDetrConfig, ConditionalDetrForObjectDetection, ConditionalDetrFeatureExtractor
+from transformers import DeformableDetrConfig, DeformableDetrForObjectDetection, DeformableDetrFeatureExtractor
+from transformers import TableTransformerConfig, TableTransformerForObjectDetection
+from transformers import YolosConfig, YolosForObjectDetection, YolosFeatureExtractor
 from transformers import get_scheduler
 import eval_utils
 
@@ -23,6 +28,7 @@ from tqdm import tqdm
 
 def init_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model_type", default="detr", type=str, help="Model type selected in the list: " + ", ".join(transformers.MODEL_FOR_OBJECT_DETECTION_MAPPING.keys()))
     parser.add_argument("--model_name_or_path", type=str, default="facebook/detr-resnet-50", help="Model name or path")
     parser.add_argument("--output_dir", type=str, default="./output", help="Output directory")
 
@@ -43,6 +49,8 @@ def init_args():
     parser.add_argument("--native", action="store_true", help="Train the model using native pytorch")
     parser.add_argument("--iou_threshold", type=float, default=0.5, help="IoU threshold for evaluation")
     parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
+    parser.add_argument("--model_args", type=str, default="model_args.json", help="Path to model args file")
+    parser.add_argument("--feature_extractor_args", type=str, default="feature_extractor_args.json", help="Path to feature extractor args file")
     parser.add_argument("--train_args", type=str, default="train_args.json", help="Path to train args file")
 
     parser.add_argument("--threshold", type=float, default=0.7, help="Threshold for localizations")
@@ -71,6 +79,44 @@ def transform(example_batch,feature_extractor):
         {"image_id": id_, "annotations": object_} for id_, object_ in zip(ids_, objects)
     ]
     return feature_extractor(images=images, annotations=targets, return_tensors="pt")
+
+def load_model(model_type,model_name_or_path,config,model_args={},feature_extractor_args={}):
+    if model_type == "detr":
+        model_config = DetrConfig.from_pretrained(model_name_or_path,**config)
+        model = DetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        feature_extractor = DetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+        return model,feature_extractor
+    if model_type == "conditional_detr":
+        model_config = ConditionalDetrConfig.from_pretrained(model_name_or_path,**config)
+        model = ConditionalDetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        feature_extractor = ConditionalDetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+        return model,feature_extractor
+    if model_type == "deformable_detr":
+        model_config = DeformableDetrConfig.from_pretrained(model_name_or_path,**config)
+        model = DeformableDetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        feature_extractor = DeformableDetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+        return model,feature_extractor
+    if model_type == "table_transformer":
+        model_config = TableTransformerConfig.from_pretrained(model_name_or_path,**config)
+        model = TableTransformerForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        feature_extractor = AutoFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+        return model,feature_extractor
+    if model_type == "yolos":
+        model_config = YolosConfig.from_pretrained(model_name_or_path,**config)
+        model = YolosForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        feature_extractor = YolosFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+        return model,feature_extractor
+    
+    model_config = AutoConfig.from_pretrained(model_name_or_path,**config)
+    model = AutoModelForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
+
+    return model,feature_extractor
 
 def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
     torch.cuda.empty_cache()
@@ -299,6 +345,8 @@ def main():
     # Get training args
     train_args = json.load(open(args.train_args, "r"))
     config = json.load(open(args.config, "r"))
+    model_args = json.load(open(args.model_args, "r"))
+    feature_extractor_args = json.load(open(args.feature_extractor_args, "r"))
 
     # Prepare dataset
     print("Preparing dataset...")
@@ -323,9 +371,10 @@ def main():
 
     print("Loading model...")
 
-    model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
-    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config,ignore_mismatched_sizes=True,num_labels=2)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=args.size)
+    # model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
+    # model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=model_config,ignore_mismatched_sizes=True,num_labels=2)
+    # feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=args.size)
+    model, feature_extractor = load_model(args.model_type,args.model_name_or_path,config,model_args,feature_extractor_args)
 
     # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
     # annotations (Dict, List[Dict], optional) — The corresponding annotations in COCO format.
