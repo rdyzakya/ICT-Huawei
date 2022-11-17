@@ -37,9 +37,7 @@ def read_dataset(image_path,label_path,format="yolo"):
     for image_index,image_file in enumerate(image_files):
         label_file = image_file.replace(".jpg",".txt") if image_file.endswith(".jpg") else image_file.replace(".png",".txt")
         # image
-        image = Image.open(os.path.join(image_path,image_file))
-        if image_file.endswith(".png"):
-            image = image.convert("RGB")
+        image = Image.open(os.path.join(image_path,image_file)).convert('RGB')
         with open(os.path.join(label_path, label_file)) as f:
             label = f.read().splitlines()
         label = [el.split() for el in label]
