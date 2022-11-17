@@ -80,39 +80,40 @@ def transform(example_batch,feature_extractor):
     return feature_extractor(images=images, annotations=targets, return_tensors="pt")
 
 def load_model(model_type,model_name_or_path,config,model_args={},feature_extractor_args={}):
+    model_args.update(config)
     if model_type == "detr":
-        model_config = DetrConfig.from_pretrained(model_name_or_path,**config)
-        model = DetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        # model_config = DetrConfig.from_pretrained(model_name_or_path,**config)
+        model = DetrForObjectDetection.from_pretrained(model_name_or_path,**model_args)
         feature_extractor = DetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
         return model,feature_extractor
     if model_type == "conditional_detr":
-        model_config = ConditionalDetrConfig.from_pretrained(model_name_or_path,**config)
-        model = ConditionalDetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        # model_config = ConditionalDetrConfig.from_pretrained(model_name_or_path,**config)
+        model = ConditionalDetrForObjectDetection.from_pretrained(model_name_or_path,**model_args)
         feature_extractor = ConditionalDetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
         return model,feature_extractor
     if model_type == "deformable_detr":
-        model_config = DeformableDetrConfig.from_pretrained(model_name_or_path,**config)
-        model = DeformableDetrForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        # model_config = DeformableDetrConfig.from_pretrained(model_name_or_path,**config)
+        model = DeformableDetrForObjectDetection.from_pretrained(model_name_or_path,**model_args)
         feature_extractor = DeformableDetrFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
         return model,feature_extractor
     if model_type == "table_transformer":
-        model_config = TableTransformerConfig.from_pretrained(model_name_or_path,**config)
-        model = TableTransformerForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        # model_config = TableTransformerConfig.from_pretrained(model_name_or_path,**config)
+        model = TableTransformerForObjectDetection.from_pretrained(model_name_or_path,**model_args)
         feature_extractor = AutoFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
         return model,feature_extractor
     if model_type == "yolos":
-        model_config = YolosConfig.from_pretrained(model_name_or_path,**config)
-        model = YolosForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+        # model_config = YolosConfig.from_pretrained(model_name_or_path,**config)
+        model = YolosForObjectDetection.from_pretrained(model_name_or_path,**model_args)
         feature_extractor = YolosFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
         return model,feature_extractor
     
-    model_config = AutoConfig.from_pretrained(model_name_or_path,**config)
-    model = AutoModelForObjectDetection.from_pretrained(model_name_or_path,config=model_config,**model_args)
+    # model_config = AutoConfig.from_pretrained(model_name_or_path,**config)
+    model = AutoModelForObjectDetection.from_pretrained(model_name_or_path,**model_args)
     feature_extractor = AutoFeatureExtractor.from_pretrained(model_name_or_path,**feature_extractor_args)
 
     return model,feature_extractor
