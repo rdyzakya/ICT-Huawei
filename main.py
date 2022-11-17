@@ -82,12 +82,16 @@ def transform(example_batch,feature_extractor):
             "annotations" : []
         }
         for j in range(len(objects[i])):
+            category_id = objects[i]["category"][j]
+            bbox = objects[i]["bbox"][j]
+            area = objects[i]["area"][j]
+            id = objects[i]["id"][j]
             new_target["annotations"].append({
                 "image_id": ids_[i],
-                "category_id": objects[i]["category"][j],
-                "bbox": objects[i]["bbox"][j],
-                "area": objects[i]["area"][j],
-                "id": objects[i]["id"][j]
+                "category_id": category_id,
+                "bbox": bbox,
+                "area": area,
+                "id": id
             })
         targets.append(new_target)
     # targets = [
