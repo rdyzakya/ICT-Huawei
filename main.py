@@ -81,7 +81,7 @@ def transform(example_batch,feature_extractor):
             "image_id": ids_[i],
             "annotations" : []
         }
-        for j in range(len(objects[i])):
+        for j in range(len(objects[i]["id"])):
             category_id = objects[i]["category"][j]
             bbox = objects[i]["bbox"][j]
             area = objects[i]["area"][j]
