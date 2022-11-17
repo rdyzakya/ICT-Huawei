@@ -17,5 +17,7 @@ def map_score(ground_truth,pred,iou_threshold=0.5,format="default"):
     # count map
     total_map = 0
     for i in range(len(pred)):
+        print(type(gt))
+        print(type(pred[i]))
         total_map += mapcalc.calculate_map(gt,pred[i],iou_threshold)
     return total_map / len(pred)
