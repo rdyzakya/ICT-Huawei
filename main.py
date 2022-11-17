@@ -60,12 +60,13 @@ def init_args():
     return args
 
 def collate_fn(batch,feature_extractor):
-    pixel_values = torch.tensor([item["pixel_values"] for item in batch])
+    # pixel_values = torch.tensor([item["pixel_values"] for item in batch])
     encoding = feature_extractor.pad_and_create_pixel_mask(
-        pixel_values, return_tensors="pt"
+        batch["pixel_values"], return_tensors="pt"
     )
     labels = [item["labels"] for item in batch]
-    # batch = {}
+    batch = {}
+    batch["pixel_values"] = batch["pixel_values"]
     batch["pixel_mask"] = encoding["pixel_mask"]
     batch["labels"] = labels
     return batch
