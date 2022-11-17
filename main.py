@@ -181,7 +181,7 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
     trainer = transformers.Trainer(
         model=model,
         args=training_args,
-        # data_collator=lambda x : collate_fn(x,feature_extractor),
+        data_collator=lambda x : collate_fn(x,feature_extractor),
         train_dataset=inputs["train"],
         eval_dataset=inputs["val"],
         tokenizer=feature_extractor,
