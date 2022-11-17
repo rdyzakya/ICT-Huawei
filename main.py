@@ -130,8 +130,8 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 ])
 
                 for k in outputs.keys():
-                    print(type(outputs[k]))
-                    outputs[k] = outputs[k].to('cpu')
+                    if isinstance(outputs[k], torch.Tensor):
+                        outputs[k] = outputs[k].to('cpu')
 
                 results = feature_extractor.post_process_object_detection(
                     outputs, threshold=args.threshold, target_sizes=target_sizes
