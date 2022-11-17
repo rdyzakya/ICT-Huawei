@@ -3,8 +3,10 @@ import argparse
 # from torchvision.utils import draw_bounding_boxes
 # from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
+import math
+
 import torch
-from torch.utils.data import DataLoader
+# from torch.utils.data import DataLoader
 from torch.optim import AdamW
 import transformers
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection
@@ -47,15 +49,16 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     torch.cuda.empty_cache()
     # For native pt : https://huggingface.co/docs/transformers/training#train-in-native-pytorch
     inputs = {}
-    dataloaders = {}
+    # dataloaders = {}
 
     # Feature extract the dataset
+    # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
     inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
-    dataloaders["train"] = DataLoader(inputs["train"], shuffle=False, batch_size=train_args["per_device_train_batch_size"])
+    # dataloaders["train"] = DataLoader(inputs["train"], shuffle=False, batch_size=train_args["per_device_train_batch_size"])
 
     if args.do_eval:
         inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
-        dataloaders["val"] = DataLoader(inputs["val"], shuffle=False, batch_size=train_args["per_device_eval_batch_size"])
+        # dataloaders["val"] = DataLoader(inputs["val"], shuffle=False, batch_size=train_args["per_device_eval_batch_size"])
 
     lr = train_args["learning_rate"] or 5e-5
     adam_epsilon = train_args["adam_epsilon"] or 1e-8
@@ -64,7 +67,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     optimizer = AdamW(model.parameters() , lr=lr, eps=adam_epsilon, weight_decay=weight_decay, betas=betas)
 
     num_epochs = train_args["num_train_epochs"] or 3
-    num_training_steps = num_epochs * len(dataloaders["train"])
+    num_training_steps = num_epochs * math.ceil(len(inputs["train"]) / train_args["per_device_train_batch_size"])
     num_warmup_steps = train_args["warmup_steps"] or 0
     lr_scheduler = get_scheduler(
         name="linear", optimizer=optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=num_training_steps
@@ -80,8 +83,16 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
 
     for epoch in range(num_epochs):
         model.train()
-        for batch in dataloaders["train"]:
-            batch = {k: v.to(device) for k, v in batch.items()}
+        train_batch_size = train_args["per_device_train_batch_size"]
+        for i in range(0, len(inputs["train"]["pixel_values"]), train_batch_size):
+            pixel_values = inputs["train"]["pixel_values"][i:i+train_batch_size].to(device)
+            labels = inputs["train"]["labels"][i:i+train_batch_size]
+            for j in range(len(labels)):
+                label = labels[i+j]
+                for k in label.keys():
+                    # to device
+                    labels[i+j][k].to(device)
+            batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
             loss.backward()

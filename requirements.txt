@@ -6,3 +6,4 @@ torchvision
 albumentations
 opencv-python
 numpy
+evaluate
