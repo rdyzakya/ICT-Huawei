@@ -129,9 +129,6 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                     image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
                 ])
 
-                print(type(outputs))
-                print("KOCAK",outputs)
-
                 for k in outputs.keys():
                     outputs[k] = outputs[k].to('cpu')
 
