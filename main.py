@@ -65,7 +65,7 @@ def collate_fn(batch,feature_extractor):
         pixel_values, return_tensors="pt"
     )
     labels = [item["labels"] for item in batch]
-    batch = {}
+    # batch = {}
     batch["pixel_mask"] = encoding["pixel_mask"]
     batch["labels"] = labels
     return batch
