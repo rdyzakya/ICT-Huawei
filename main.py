@@ -96,6 +96,7 @@ def transform(example_batch,feature_extractor):
             new_target["annotations"].append({
                 "image_id": ids_[i],
                 "category_id": category_id,
+                "class_labels": category_id,
                 "bbox": bbox,
                 "area": area,
                 "id": id
