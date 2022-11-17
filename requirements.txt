@@ -8,3 +8,4 @@ opencv-python
 evaluate
 mapcalc
 numpy
+timm

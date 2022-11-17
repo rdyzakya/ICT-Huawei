@@ -20,7 +20,6 @@ import os
 import json
 
 from tqdm import tqdm
-from tqdm_output import nostdout
 
 # https://huggingface.co/docs/datasets/object_detection
 
@@ -109,8 +108,6 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
-            with nostdout():
-                print("Training loss : ", loss.item())
             train_loss_value += loss.item()
             loss.backward()
 
@@ -137,8 +134,6 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 with torch.no_grad():
                     outputs = model(**batch)
                 loss = outputs.loss
-                with nostdout():
-                    print("Evaluation loss : ", loss.item())
                 eval_loss_value += loss.item()
                 target_sizes = torch.tensor([
                     image.size[::-1] for image in dataset["val"]["image"][i:i+eval_batch_size]
