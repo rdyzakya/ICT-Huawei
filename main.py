@@ -19,14 +19,15 @@ from preprocess_dataset import read_dataset, coco_format_annotation
 import os
 import json
 
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 # https://huggingface.co/docs/datasets/object_detection
 
 def init_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name_or_path", type=str, default="facebook/detr-resnet-50", help="Model name or path")
-    
+    parser.add_argument("--output_dir", type=str, default="./output", help="Output directory")
+
     parser.add_argument("--data_dir", type=str, default="data", help="Path to data directory")
     parser.add_argument("--train", type=str, default="train", help="Path to train folder")
     parser.add_argument("--val", type=str, default="val", help="Path to val folder")
@@ -83,9 +84,9 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     print("Start training...")
     print("Training arguments:")
     print(train_args)
-    progress_bar = tqdm(range(num_training_steps))
+    # progress_bar = tqdm(range(num_training_steps))
 
-    for epoch in range(num_epochs):
+    for epoch in tqdm(range(num_epochs)):
         print("Epoch : ", epoch)
         model.train()
         train_batch_size = train_args["per_device_train_batch_size"]
@@ -106,14 +107,16 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
-            progress_bar.update(1)
+            # progress_bar.update(1)
         
         if args.do_eval:
             print("Do evaluation...")
             model.eval()
-            for i in range(0, len(inputs["val"]["pixel_values"]), train_batch_size):
-                pixel_values = inputs["val"]["pixel_values"][i:i+train_batch_size].to(device)
-                labels = inputs["val"]["labels"][i:i+train_batch_size]
+            eval_batch_size = train_args["per_device_eval_batch_size"]
+            results = []
+            for i in range(0, len(inputs["val"]["pixel_values"]), eval_batch_size):
+                pixel_values = inputs["val"]["pixel_values"][i:i+eval_batch_size].to(device)
+                labels = inputs["val"]["labels"][i:i+eval_batch_size]
                 for j in range(len(labels)):
                     label = labels[j]
                     for k in label.keys():
@@ -126,21 +129,24 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 loss = outputs.loss
                 print("Evaluation loss : ", loss.item())
                 target_sizes = torch.tensor([
-                    image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
+                    image.size[::-1] for image in dataset["val"]["image"][i:i+eval_batch_size]
                 ])
 
                 for k in outputs.keys():
                     if isinstance(outputs[k], torch.Tensor):
                         outputs[k] = outputs[k].to('cpu')
 
-                results = feature_extractor.post_process_object_detection(
+                r = feature_extractor.post_process_object_detection(
                     outputs, threshold=args.threshold, target_sizes=target_sizes
                 )
-                ground_truths = dataset["val"]["objects"][i:i+train_batch_size]
 
-                evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
+                results.extend(r)
+                
+            ground_truths = dataset["val"]["objects"]
 
-                print("Evaluation score : ", evaluation_score)
+            evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
+
+            print("Evaluation score : ", evaluation_score)
     model.save_pretrained(args.output_dir)
             #     batch = {k: v.to(device) for k, v in batch.items()}
             #     with torch.no_grad():
