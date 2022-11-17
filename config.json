@@ -1,11 +1,3 @@
 {
-    "label2id" : {
-        "no_mask" : 0,
-        "yes_mask" : 1
-    },
-    "id2label" : {
-        "0" : "no_mask",
-        "1" : "yes_mask"
-    },
-    "num_labels" : 2
+
 }
