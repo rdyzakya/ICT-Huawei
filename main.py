@@ -233,30 +233,41 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
     # inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
     inputs["train"] = dataset["train"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True, remove_columns=remove_columns)
     
-    print("KOCAK")
-    print(inputs["train"]["labels"][0])
     if args.do_eval:
         # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
         # inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
         inputs["val"] = dataset["val"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True, remove_columns=remove_columns)
-    
     training_args = transformers.TrainingArguments(
         output_dir=args.output_dir,
-        do_train=args.do_train,
-        do_eval=args.do_eval,
-        do_predict=args.do_predict,
+        do_train=bool(args.do_train),
+        do_eval=bool(args.do_eval),
+        do_predict=bool(args.do_predict),
         seed=args.random_seed,
         **train_args
     )
 
-    trainer = transformers.Trainer(
-        model=model,
-        args=training_args,
-        data_collator=lambda x : collate_fn(x,feature_extractor),
-        train_dataset=inputs["train"],
-        eval_dataset=inputs["val"],
-        tokenizer=feature_extractor,
-    )
+    trainer_args = {
+        "model": model,
+        "args": training_args,
+        "data_collator": lambda x : collate_fn(x,feature_extractor),
+        "train_dataset": inputs["train"],
+        "tokenizer": feature_extractor,
+    }
+
+    if args.do_eval:
+        trainer_args["eval_dataset"] = inputs["val"]
+    else:
+        # use train
+        trainer_args["eval_dataset"] = inputs["train"]
+
+    trainer = transformers.Trainer(**trainer_args)
+    #     model=model,
+    #     args=training_args,
+    #     data_collator=lambda x : collate_fn(x,feature_extractor),
+    #     train_dataset=inputs["train"],
+    #     eval_dataset=inputs["val"],
+    #     tokenizer=feature_extractor,
+    # # )
 
     trainer.train()
 
