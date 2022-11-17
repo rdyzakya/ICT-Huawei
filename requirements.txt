@@ -3,9 +3,7 @@ datasets
 Pillow
 torch
 torchvision
-albumentations
-opencv-python
-evaluate
 mapcalc
 numpy
 timm
+pytorch_lightning

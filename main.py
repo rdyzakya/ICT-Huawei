@@ -14,6 +14,8 @@ from transformers import YolosConfig, YolosForObjectDetection, YolosFeatureExtra
 from transformers import get_scheduler
 import eval_utils
 
+import pytorch_lightning as pl
+
 import datasets
 from preprocess_dataset import read_dataset, coco_format_annotation, map_coco_annotation
 
@@ -61,23 +63,31 @@ def init_args():
 
 def collate_fn(batch,feature_extractor):
     pixel_values = torch.tensor([item["pixel_values"] for item in batch])
-    batch = {}
-    batch["pixel_values"] = pixel_values
     try:
         encoding = feature_extractor.pad_and_create_pixel_mask(
             pixel_values, return_tensors="pt"
         )
+        labels = []
+        for item in batch:
+            for k in item.keys():
+                if isinstance(item[k], list):
+                    item[k] = torch.tensor(item[k])
+            labels.append(item)
+        batch = {}
+        batch["pixel_values"] = pixel_values
         batch["pixel_mask"] = encoding["pixel_mask"]
+        batch["labels"] = labels
+        return batch
     except:
-        pass
-    labels = []
-    for item in batch:
-        for k in item.keys():
-            if isinstance(item[k], list):
-                item[k] = torch.tensor(item[k])
-        labels.append(item)
-    batch["labels"] = labels
-    return batch
+        labels = []
+        for item in batch:
+            for k in item.keys():
+                if isinstance(item[k], list):
+                    item[k] = torch.tensor(item[k])
+            labels.append(item)
+        batch = {}
+        batch["pixel_values"] = pixel_values
+        batch["labels"] = labels
 
 def transform(example_batch,feature_extractor):
     images = example_batch["image"]
@@ -109,7 +119,17 @@ def transform(example_batch,feature_extractor):
     # annotations = example_batch["annotations"]
     # squeeze annotations
     # annotations = [annotation[0] for annotation in annotations]
-    return feature_extractor(images=images, annotations=targets, return_tensors="pt")
+    result = feature_extractor(images=images, annotations=targets, return_tensors="pt")
+    # ini bug detr wkwk
+    # class_labels is in "labels" keys, move it to "class_labels" keys
+    result["class_labels"] = []
+    for i in range(len(result["labels"])):
+        result["class_labels"].append(result["labels"][i]["class_labels"])
+    # same for boxes
+    result["boxes"] = []
+    for i in range(len(result["labels"])):
+        result["boxes"].append(result["labels"][i]["boxes"])
+    return result
 
 def load_model(model_type,model_name_or_path,config,model_args={},feature_extractor_args={}):
     model_args.update(config)
@@ -150,6 +170,52 @@ def load_model(model_type,model_name_or_path,config,model_args={},feature_extrac
 
     return model,feature_extractor
 
+def train_pl(args,model,feature_extractor,dataset,annotations,train_args):
+    raise NotImplementedError
+    torch.cuda.empty_cache()
+
+    inputs = {}
+
+    # inputs["train"] = dataset["train"].with_transform(transform)
+    dataloaders = {}
+
+    # Feature extract the dataset
+    # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
+    # remove_columns = dataset["train"].column_names
+    # remove_columns.remove("image")
+    # remove_columns.remove("image_id")
+    # inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
+    # inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+    inputs["train"] = dataset["train"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True)
+    dataloaders["train"] = torch.utils.data.DataLoader(inputs["train"], batch_size=train_args["per_device_train_batch_size"], shuffle=False, collate_fn=collate_fn)
+    if args.do_eval:
+        # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
+        # inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
+        inputs["val"] = dataset["val"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True)
+        dataloaders["val"] = torch.utils.data.DataLoader(inputs["val"], batch_size=train_args["per_device_eval_batch_size"], shuffle=False, collate_fn=collate_fn)
+    
+    training_args = transformers.TrainingArguments(
+        output_dir=args.output_dir,
+        do_train=args.do_train,
+        do_eval=args.do_eval,
+        do_predict=args.do_predict,
+        seed=args.random_seed,
+        **train_args
+    )
+
+    trainer = transformers.Trainer(
+        model=model,
+        args=training_args,
+        data_collator=lambda x : collate_fn(x,feature_extractor),
+        train_dataset=inputs["train"],
+        eval_dataset=inputs["val"],
+        tokenizer=feature_extractor,
+    )
+
+    trainer.train()
+
+    model.save_pretrained(args.output_dir)
+
 def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
     torch.cuda.empty_cache()
 
@@ -160,19 +226,19 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
 
     # Feature extract the dataset
     # https://stackoverflow.com/questions/67691530/key-error-while-fine-tunning-t5-for-summarization-with-huggingface
-    # remove_columns = dataset["train"].column_names
+    remove_columns = dataset["train"].column_names
     # remove_columns.remove("image")
-    # remove_columns.remove("image_id")
+    remove_columns.remove("image_id")
     # inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
     # inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
-    inputs["train"] = dataset["train"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True)
+    inputs["train"] = dataset["train"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True, remove_columns=remove_columns)
     
     print("KOCAK")
     print(inputs["train"]["labels"][0])
     if args.do_eval:
         # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
         # inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
-        inputs["val"] = dataset["val"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True)
+        inputs["val"] = dataset["val"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True, remove_columns=remove_columns)
     
     training_args = transformers.TrainingArguments(
         output_dir=args.output_dir,
