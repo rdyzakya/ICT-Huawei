@@ -9,7 +9,7 @@ import torch
 # from torch.utils.data import DataLoader
 from torch.optim import AdamW
 import transformers
-from transformers import AutoFeatureExtractor, AutoModelForObjectDetection
+from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig
 from transformers import get_scheduler
 import evaluate
 
@@ -38,6 +38,7 @@ def init_args():
     parser.add_argument("--do_eval", action="store_true", help="Evaluate the model")
     parser.add_argument("--do_predict", action="store_true", help="Predict with the model")
 
+    parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
     parser.add_argument("--train_args", type=str, default="train_args.json", help="Path to train args file")
 
     parser.add_argument("--random_seed", type=int, default=42, help="Random seed")
@@ -143,6 +144,7 @@ def main():
     args = init_args()
     # Get training args
     train_args = json.load(open(args.train_args, "r"))
+    config = json.load(open(args.config, "r"))
 
     # Prepare dataset
     print("Preparing dataset...")
@@ -170,8 +172,9 @@ def main():
 
     print("Loading model...")
 
-    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path)
-    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path)
+    model_config = AutoConfig.from_pretrained(args.model_name_or_path, **config)
+    model = AutoModelForObjectDetection.from_pretrained(args.model_name_or_path,config=config)
+    feature_extractor = AutoFeatureExtractor.from_pretrained(args.model_name_or_path,size=512)
 
     # https://huggingface.co/docs/transformers/model_doc/yolos#transformers.YolosFeatureExtractor.__call__.annotations
     # annotations (Dict, List[Dict], optional) — The corresponding annotations in COCO format.
