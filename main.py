@@ -20,6 +20,7 @@ import os
 import json
 
 from tqdm import tqdm
+from tqdm_output import nostdout
 
 # https://huggingface.co/docs/datasets/object_detection
 
@@ -84,12 +85,19 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     print("Start training...")
     print("Training arguments:")
     print(train_args)
-    # progress_bar = tqdm(range(num_training_steps))
+    
+    history = {
+        "train_loss": [],
+        "val_loss": [],
+        "val_map": [],
+    }
 
     for epoch in tqdm(range(num_epochs)):
         print("Epoch : ", epoch)
         model.train()
         train_batch_size = train_args["per_device_train_batch_size"]
+        train_loss_value = 0
+        eval_loss_value = 0
         for i in range(0, len(inputs["train"]["pixel_values"]), train_batch_size):
             pixel_values = inputs["train"]["pixel_values"][i:i+train_batch_size].to(device)
             labels = inputs["train"]["labels"][i:i+train_batch_size]
@@ -101,7 +109,9 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
-            print("Training loss : ", loss.item())
+            with nostdout():
+                print("Training loss : ", loss.item())
+            train_loss_value += loss.item()
             loss.backward()
 
             optimizer.step()
@@ -127,7 +137,9 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 with torch.no_grad():
                     outputs = model(**batch)
                 loss = outputs.loss
-                print("Evaluation loss : ", loss.item())
+                with nostdout():
+                    print("Evaluation loss : ", loss.item())
+                eval_loss_value += loss.item()
                 target_sizes = torch.tensor([
                     image.size[::-1] for image in dataset["val"]["image"][i:i+eval_batch_size]
                 ])
@@ -145,39 +157,20 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             ground_truths = dataset["val"]["objects"]
 
             evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
-
             print("Evaluation score : ", evaluation_score)
-    model.save_pretrained(args.output_dir)
-            #     batch = {k: v.to(device) for k, v in batch.items()}
-            #     with torch.no_grad():
-            #         outputs = model(**batch)
+            history["val_map"].append(evaluation_score)
 
-            #     logits = outputs.logits
-            #     predictions = torch.argmax(logits, dim=-1)
-            #     metric.add_batch(predictions=predictions, references=batch["labels"])
-    # Prepare the training arguments
-    # train_args.update({
-    #     "do_train": args.do_train,
-    #     "do_eval": args.do_eval,
-    #     "do_predict": args.do_predict,
-    # })
-    # For reference : https://huggingface.co/docs/transformers/main_classes/trainer#transformers.TrainingArguments
-    # training_arguments = transformers.TrainingArguments(**train_args)
-    # trainer_args = {
-    #     "model": model,
-    #     "args": training_arguments,
-    #     "train_dataset": inputs_train,
-    #     "tokenizer": feature_extractor,
-    # }
-    # # If evaluation then...
-    # if args.do_eval:
-    #     inputs_val = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
-    #     trainer_args["eval_dataset"] = inputs_val
-    # # Prepare the trainer
-    # trainer = transformers.Trainer(**trainer_args)
-    # # Train the model
-    # print("Start the training...")
-    # trainer.train()
+        current_epoch_train_loss = train_loss_value/len(inputs["train"]["pixel_values"])
+        print("Average training loss : ", current_epoch_train_loss)
+        history["train_loss"].append(current_epoch_train_loss)
+        if args.do_eval:
+            current_epoch_eval_loss = eval_loss_value/len(inputs["val"]["pixel_values"])
+            print("Average evaluation loss : ", current_epoch_eval_loss)
+            history["val_loss"].append(current_epoch_eval_loss)
+    
+    model.save_pretrained(args.output_dir)
+
+    return history
 
 def main():
     args = init_args()
@@ -230,7 +223,7 @@ def main():
     # https://towardsdatascience.com/on-object-detection-metrics-with-worked-example-216f173ed31e
 
     if args.do_train:
-        train(args,model,feature_extractor,dataset,annotations,train_args)
+        history = train(args,model,feature_extractor,dataset,annotations,train_args)
     if args.do_predict:
         pass
 
