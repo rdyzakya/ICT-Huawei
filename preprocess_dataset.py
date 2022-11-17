@@ -94,3 +94,24 @@ def coco_format_annotation(ds):
         result.append(annotations)
     
     return result
+
+def from_coco_annotation_to_default(annotations):
+    result = []
+    for i in range(len(annotations)):
+        objects = annotations[i]["annotations"]
+        annotation = {
+            "image_id" : annotations[i]["image_id"],
+            "objects" : {
+                "id" : [],
+                "area" : [],
+                "bbox" : [],
+                "category" : []
+            }
+        }
+        for j in range(len(objects)):
+            annotation["objects"]["id"].append(objects[j]["id"])
+            annotation["objects"]["area"].append(objects[j]["area"])
+            annotation["objects"]["bbox"].append(objects[j]["bbox"])
+            annotation["objects"]["category"].append(objects[j]["category_id"])
+        result.append(annotation)
+    return result

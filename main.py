@@ -11,7 +11,7 @@ from torch.optim import AdamW
 import transformers
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig
 from transformers import get_scheduler
-import evaluate
+import eval_utils
 
 import datasets
 from preprocess_dataset import read_dataset, coco_format_annotation
@@ -38,8 +38,11 @@ def init_args():
     parser.add_argument("--do_eval", action="store_true", help="Evaluate the model")
     parser.add_argument("--do_predict", action="store_true", help="Predict with the model")
 
+    parser.add_argument("--iou_threshold", type=float, default=0.5, help="IoU threshold for evaluation")
     parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
     parser.add_argument("--train_args", type=str, default="train_args.json", help="Path to train args file")
+
+    parser.add_argument("--threshold", type=float, default=0.7, help="Threshold for localizations")
 
     parser.add_argument("--random_seed", type=int, default=42, help="Random seed")
     args = parser.parse_args()
@@ -83,6 +86,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
     progress_bar = tqdm(range(num_training_steps))
 
     for epoch in range(num_epochs):
+        print("Epoch : ", epoch)
         model.train()
         train_batch_size = train_args["per_device_train_batch_size"]
         for i in range(0, len(inputs["train"]["pixel_values"]), train_batch_size):
@@ -96,6 +100,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
+            print("Training loss : ", loss)
             loss.backward()
 
             optimizer.step()
@@ -104,11 +109,35 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             progress_bar.update(1)
         
         if args.do_eval:
-            pass
-            # model.eval()
-            # metric = evaluate.load("accuracy")
-            # model.eval()
-            # for batch in dataloaders["val"]:
+            print("Do evaluation...")
+            model.eval()
+            for i in range(0, len(inputs["eval"]["pixel_values"]), train_batch_size):
+                pixel_values = inputs["eval"]["pixel_values"][i:i+train_batch_size].to(device)
+                labels = inputs["eval"]["labels"][i:i+train_batch_size]
+                for j in range(len(labels)):
+                    label = labels[j]
+                    for k in label.keys():
+                        # to device
+                        labels[j][k] = label[k].to(device)
+                batch = {"pixel_values" : pixel_values, "labels" : labels}
+
+                with torch.no_grad():
+                    outputs = model(**batch)
+                loss = outputs.loss
+                print("Evaluation loss : ", loss)
+                target_sizes = torch.tensor([
+                    image.size[::-1] for image in dataset["val"]["image"][i:i+train_batch_size]
+                ])
+                results = feature_extractor.post_process_object_detection(
+                    outputs, threshold=args.threshold, target_sizes=target_sizes
+                )
+                ground_truths = dataset["val"]["objects"][i:i+train_batch_size]
+
+                evaluation_score = eval_utils.map_score(ground_truth=ground_truths, prediction=results,
+                iou_threshold=args.iou_threshold)
+
+                print("Evaluation score : ", evaluation_score)
+    model.save_pretrained(args.output_dir)
             #     batch = {k: v.to(device) for k, v in batch.items()}
             #     with torch.no_grad():
             #         outputs = model(**batch)
