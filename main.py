@@ -78,12 +78,12 @@ def transform(example_batch,feature_extractor):
     objects = example_batch["objects"]
     for i in range(len(objects)):
         new_target = {
-            "image_id": ids_[j],
+            "image_id": ids_[i],
             "annotations" : []
         }
         for j in range(len(objects[i])):
             new_target["annotations"].append({
-                "image_id": ids_[j],
+                "image_id": ids_[i],
                 "category_id": objects["category"][j],
                 "bbox": objects["bbox"][j],
                 "area": objects["area"][j],
