@@ -74,7 +74,7 @@ def collate_fn(batch,feature_extractor):
     batch = {}
     batch["pixel_values"] = pixel_values
     batch["pixel_mask"] = encoding["pixel_mask"]
-    batch["labels"] = torch.tensor(labels)
+    batch["labels"] = labels
     return batch
 
 def transform(example_batch,feature_extractor):
