@@ -96,7 +96,6 @@ def transform(example_batch,feature_extractor):
             new_target["annotations"].append({
                 "image_id": ids_[i],
                 "category_id": category_id,
-                "class_labels": category_id,
                 "bbox": bbox,
                 "area": area,
                 "id": id
@@ -165,6 +164,9 @@ def train_hf(args,model,feature_extractor,dataset,annotations,train_args):
     # inputs["train"] = feature_extractor(images=dataset["train"]["image"], annotations=annotations["train"], return_tensors="pt")
     # inputs["train"] = dataset["train"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
     inputs["train"] = dataset["train"].map(lambda example_batch: transform(example_batch,feature_extractor), batched=True)
+    
+    print("KOCAK")
+    print(inputs["train"]["labels"][0])
     if args.do_eval:
         # inputs["val"] = feature_extractor(images=dataset["val"]["image"], annotations=annotations["val"], return_tensors="pt")
         # inputs["val"] = dataset["val"].map(map_coco_annotation, batched=False, remove_columns=remove_columns)
