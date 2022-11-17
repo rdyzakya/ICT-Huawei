@@ -138,8 +138,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 )
                 ground_truths = dataset["val"]["objects"][i:i+train_batch_size]
 
-                evaluation_score = eval_utils.map_score(ground_truth=ground_truths, prediction=results,
-                iou_threshold=args.iou_threshold)
+                evaluation_score = eval_utils.map_score(ground_truths, results, args.iou_threshold)
 
                 print("Evaluation score : ", evaluation_score)
     model.save_pretrained(args.output_dir)

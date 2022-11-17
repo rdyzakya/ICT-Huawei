@@ -10,8 +10,8 @@ def map_score(ground_truth,pred,iou_threshold=0.5,format="default"):
         raise ValueError("format must be either 'default' or 'coco'")
     # default
     gt = [{
-        "boxes" : ground_truth["bbox"][i],
-        "labels" : ground_truth["category"][i],
+        "boxes" : ground_truth[i]["bbox"],
+        "labels" : ground_truth[i]["category"],
     } for i in range(len(ground_truth))]
 
     # count map
