@@ -35,6 +35,8 @@ def init_args():
     parser.add_argument("--do_eval", action="store_true", help="Evaluate the model")
     parser.add_argument("--do_predict", action="store_true", help="Predict with the model")
 
+    parser.add_argument("--per_device_predict_batch_size", type=int, default=8, help="Batch size for prediction")
+
     parser.add_argument("--iou_threshold", type=float, default=0.5, help="IoU threshold for evaluation")
     parser.add_argument("--config", type=str, default="config.json", help="Path to config file")
     parser.add_argument("--train_args", type=str, default="train_args.json", help="Path to train args file")
@@ -169,7 +171,8 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
 
     return history
 
-def predict(args, model, feature_extractor, dataset, annotations, test_batch_size):
+def predict(args, model, feature_extractor, dataset, annotations):
+    test_batch_size = args.per_device_eval_batch_size
     inputs_test = feature_extractor(images=dataset["test"]["image"], annotations=annotations["test"], return_tensors="pt")
     device = torch.device(f"cuda:{args.n_gpu}" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -275,7 +278,7 @@ def main():
     if args.do_train:
         history = train(args,model,feature_extractor,dataset,annotations,train_args)
     if args.do_predict:
-        results, metrics_and_loss = predict(args,model,feature_extractor,dataset,annotations,train_args)
+        results, metrics_and_loss = predict(args,model,feature_extractor,dataset,annotations)
 
 if __name__ == "__main__":
     main()
