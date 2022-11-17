@@ -1,12 +1,8 @@
 import argparse
-# from torchvision.ops import box_convert
-# from torchvision.utils import draw_bounding_boxes
-# from torchvision.transforms.functional import pil_to_tensor, to_pil_image
 
 import math
 
 import torch
-# from torch.utils.data import DataLoader
 from torch.optim import AdamW
 import transformers
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection, AutoConfig
@@ -108,6 +104,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             batch = {"pixel_values" : pixel_values, "labels" : labels}
             outputs = model(**batch)
             loss = outputs.loss
+            # print("Training loss : ", loss.item())
             train_loss_value += loss.item()
             loss.backward()
 
@@ -134,6 +131,7 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
                 with torch.no_grad():
                     outputs = model(**batch)
                 loss = outputs.loss
+                # print("Evaluation loss : ", loss.item())
                 eval_loss_value += loss.item()
                 target_sizes = torch.tensor([
                     image.size[::-1] for image in dataset["val"]["image"][i:i+eval_batch_size]
@@ -164,6 +162,10 @@ def train(args,model,feature_extractor,dataset,annotations,train_args):
             history["val_loss"].append(current_epoch_eval_loss)
     
     model.save_pretrained(args.output_dir)
+
+    #write history to json
+    with open(os.path.join(args.output_dir, "history.json"), "w") as f:
+        json.dump(history, f)
 
     return history
 
