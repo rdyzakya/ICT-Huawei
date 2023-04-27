@@ -1,0 +1,30 @@
+{
+    "classes": [
+        {
+            "title": "productive",
+            "shape": "rectangle",
+            "color": "#798FD8",
+            "geometry_config": {},
+            "id": 11546359,
+            "hotkey": ""
+        },
+        {
+            "title": "neutral",
+            "shape": "rectangle",
+            "color": "#297A39",
+            "geometry_config": {},
+            "id": 11546360,
+            "hotkey": ""
+        },
+        {
+            "title": "unproductive",
+            "shape": "rectangle",
+            "color": "#E41B79",
+            "geometry_config": {},
+            "id": 11546361,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "videos"
+}

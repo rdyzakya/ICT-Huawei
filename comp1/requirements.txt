@@ -1,9 +1,0 @@
-transformers
-datasets
-Pillow
-torch
-torchvision
-mapcalc
-numpy
-timm
-pytorch_lightning
