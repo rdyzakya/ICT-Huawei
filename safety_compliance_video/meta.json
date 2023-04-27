@@ -1,0 +1,46 @@
+{
+    "classes": [
+        {
+            "title": "productive",
+            "shape": "rectangle",
+            "color": "#798FD8",
+            "geometry_config": {},
+            "id": 11550675,
+            "hotkey": ""
+        },
+        {
+            "title": "neutral",
+            "shape": "rectangle",
+            "color": "#297A39",
+            "geometry_config": {},
+            "id": 11550676,
+            "hotkey": ""
+        },
+        {
+            "title": "unproductive",
+            "shape": "rectangle",
+            "color": "#E41B79",
+            "geometry_config": {},
+            "id": 11550677,
+            "hotkey": ""
+        },
+        {
+            "title": "unsafe",
+            "shape": "rectangle",
+            "color": "#8605C7",
+            "geometry_config": {},
+            "id": 11550678,
+            "hotkey": ""
+        },
+        {
+            "title": "safe",
+            "shape": "rectangle",
+            "color": "#19EBBE",
+            "geometry_config": {},
+            "id": 11550679,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "videos"
+}
