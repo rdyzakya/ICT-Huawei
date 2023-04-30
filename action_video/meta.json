@@ -1,0 +1,118 @@
+{
+    "classes": [
+        {
+            "title": "productive",
+            "shape": "rectangle",
+            "color": "#798FD8",
+            "geometry_config": {},
+            "id": 11551189,
+            "hotkey": ""
+        },
+        {
+            "title": "neutral",
+            "shape": "rectangle",
+            "color": "#297A39",
+            "geometry_config": {},
+            "id": 11551190,
+            "hotkey": ""
+        },
+        {
+            "title": "unproductive",
+            "shape": "rectangle",
+            "color": "#E41B79",
+            "geometry_config": {},
+            "id": 11551191,
+            "hotkey": ""
+        },
+        {
+            "title": "walking",
+            "shape": "rectangle",
+            "color": "#E35526",
+            "geometry_config": {},
+            "id": 11553609,
+            "hotkey": ""
+        },
+        {
+            "title": "Idle-standing",
+            "shape": "rectangle",
+            "color": "#01FE88",
+            "geometry_config": {},
+            "id": 11553615,
+            "hotkey": ""
+        },
+        {
+            "title": "Idle-Crouch",
+            "shape": "rectangle",
+            "color": "#FAC55C",
+            "geometry_config": {},
+            "id": 11553618,
+            "hotkey": ""
+        },
+        {
+            "title": "person_1",
+            "shape": "rectangle",
+            "color": "#4736A1",
+            "geometry_config": {},
+            "id": 11553619,
+            "hotkey": ""
+        },
+        {
+            "title": "person_3",
+            "shape": "rectangle",
+            "color": "#3E56C1",
+            "geometry_config": {},
+            "id": 11553620,
+            "hotkey": ""
+        },
+        {
+            "title": "person_2",
+            "shape": "rectangle",
+            "color": "#D765E2",
+            "geometry_config": {},
+            "id": 11553621,
+            "hotkey": ""
+        },
+        {
+            "title": "person_4",
+            "shape": "rectangle",
+            "color": "#81AE3D",
+            "geometry_config": {},
+            "id": 11553622,
+            "hotkey": ""
+        },
+        {
+            "title": "person_5",
+            "shape": "rectangle",
+            "color": "#9ED883",
+            "geometry_config": {},
+            "id": 11553623,
+            "hotkey": ""
+        },
+        {
+            "title": "person_6",
+            "shape": "rectangle",
+            "color": "#90B616",
+            "geometry_config": {},
+            "id": 11553624,
+            "hotkey": ""
+        },
+        {
+            "title": "person_7",
+            "shape": "rectangle",
+            "color": "#8D3820",
+            "geometry_config": {},
+            "id": 11553626,
+            "hotkey": ""
+        },
+        {
+            "title": "person_8",
+            "shape": "rectangle",
+            "color": "#597C27",
+            "geometry_config": {},
+            "id": 11553688,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "videos"
+}
